@@ -1,0 +1,16 @@
+2025-12-31 16:49:41 | INFO | RUN START mode=full n_ensemble=100000 n_seeds=5
+2025-12-31 16:49:41 | INFO | RUN CONFIG only=sweep_r
+2025-12-31 16:49:41 | INFO | START sweep_r: r in [0.2, 0.3, 0.4, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0], s=0.5, p_fail=0.5
+2025-12-31 16:49:41 | INFO | sweep_r: running r=0.2 missing_seeds=[0, 1, 2, 3, 4]
+2025-12-31 16:49:41 | INFO | sweep_r: running r=0.3 missing_seeds=[0, 1, 2, 3, 4]
+2025-12-31 16:49:41 | INFO | sweep_r: running r=0.4 missing_seeds=[0, 1, 2, 3, 4]
+2025-12-31 16:49:42 | INFO | sweep_r: running r=0.5 missing_seeds=[0, 1, 2, 3, 4]
+2025-12-31 16:49:42 | INFO | sweep_r: running r=0.75 missing_seeds=[0, 1, 2, 3, 4]
+2025-12-31 16:49:42 | INFO | sweep_r: running r=1.0 missing_seeds=[0, 1, 2, 3, 4]
+2025-12-31 16:49:42 | INFO | sweep_r: running r=1.25 missing_seeds=[0, 1, 2, 3, 4]
+2025-12-31 16:49:42 | INFO | sweep_r: running r=1.5 missing_seeds=[0, 1, 2, 3, 4]
+2025-12-31 16:49:42 | INFO | sweep_r: running r=2.0 missing_seeds=[0, 1, 2, 3, 4]
+2025-12-31 16:49:42 | INFO | sweep_r: running r=3.0 missing_seeds=[0, 1, 2, 3, 4]
+2025-12-31 16:49:42 | WARNING | sweep_r: no sign-flip in range (no r* estimated)
+2025-12-31 16:49:42 | INFO | END sweep_r
+2025-12-31 16:49:42 | INFO | RUN END

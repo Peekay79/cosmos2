@@ -144,6 +144,7 @@ def run_sweep_r(
         "ensemble_n",
         "seeds_n",
         "base_seed",
+        "phase",
         "r",
         "s",
         "p_fail",
@@ -177,6 +178,7 @@ def run_sweep_r(
 
     s_fixed = 0.5
     p_fail_fixed = 0.5
+    extended_low_r = {_n(0.2), _n(0.3), _n(0.4)}
 
     logger_info(f"START sweep_r: r in {config.R_VALUES}, s={s_fixed}, p_fail={p_fail_fixed}")
 
@@ -185,6 +187,12 @@ def run_sweep_r(
 
     seed_df = read_csv_or_empty(seed_path, expected_columns=seed_cols)
     summary_df = read_csv_or_empty(summary_path, expected_columns=summary_cols)
+    # Forward-compatible schema: older summaries may be missing `phase`.
+    # Default any missing phases to "baseline" *before* further processing.
+    if not summary_df.empty:
+        summary_df["phase"] = summary_df["phase"].fillna("baseline")
+        # Persist the schema upgrade even if this run ends up skipping everything.
+        atomic_write_csv(summary_df[summary_cols], summary_path)
 
     s_fixed_n = _n(s_fixed)
     p_fail_fixed_n = _n(p_fail_fixed)
@@ -251,6 +259,7 @@ def run_sweep_r(
             "ensemble_n": int(n_ensemble),
             "seeds_n": int(n_seeds),
             "base_seed": int(config.BASE_SEED),
+            "phase": "extended_low_r" if r_n in extended_low_r else "baseline",
             "r": r_n,
             "s": s_fixed_n,
             "p_fail": p_fail_fixed_n,

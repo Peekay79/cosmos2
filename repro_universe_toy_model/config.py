@@ -23,7 +23,18 @@ GAMMA_FAIL = 0.3
 GAMMA_SUCC = 5.0
 
 # Sweep ranges
-R_VALUES = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0]
+R_VALUES = [
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.75,
+    1.0,
+    1.25,
+    1.5,
+    2.0,
+    3.0,
+]
 S_VALUES = [0.1 * i for i in range(11)]  # 0.0 → 1.0
 P_FAIL_VALUES = [0.1, 0.3, 0.5, 0.7, 0.9]
 
