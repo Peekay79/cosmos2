@@ -82,9 +82,11 @@ def read_csv_or_empty(path: Path, *, expected_columns: Optional[Iterable[str]] =
         return pd.DataFrame(columns=list(expected_columns))
     df = pd.read_csv(path)
     if expected_columns is not None:
+        # Allow forward-compatible schema changes: add missing expected columns as NA.
         for c in expected_columns:
             if c not in df.columns:
-                raise ValueError(f"Missing required column '{c}' in {path}")
+                df[c] = pd.NA
+        df = df[list(expected_columns)]
     return df
 
 

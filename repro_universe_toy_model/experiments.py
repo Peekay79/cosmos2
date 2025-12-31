@@ -88,6 +88,38 @@ def _append_row(df: pd.DataFrame, row: dict) -> pd.DataFrame:
     return pd.concat([df, pd.DataFrame([row])], ignore_index=True)
 
 
+def estimate_r_crit(values_r, values_rho) -> Optional[float]:
+    """
+    Estimate critical r* from the first adjacent sign change in rho(r).
+
+    Rationale: use the *first* crossing and linear interpolation between the
+    two adjacent sweep points; do not extrapolate beyond the sweep range.
+    Returns None if no sign-flip is present.
+    """
+    r = np.asarray(values_r, dtype=float)
+    rho = np.asarray(values_rho, dtype=float)
+    if r.size != rho.size or r.size < 2:
+        return None
+
+    # Only consider finite entries, preserve adjacency by filtering pairs.
+    for i in range(r.size - 1):
+        y1, y2 = float(rho[i]), float(rho[i + 1])
+        x1, x2 = float(r[i]), float(r[i + 1])
+        if not (math.isfinite(y1) and math.isfinite(y2) and math.isfinite(x1) and math.isfinite(x2)):
+            continue
+
+        # Treat exact zeros as a sign-change boundary.
+        if y1 == 0.0:
+            return x1
+        if y2 == 0.0:
+            return x2
+
+        if (y1 < 0.0 and y2 > 0.0) or (y1 > 0.0 and y2 < 0.0):
+            # Linear interpolation within [x1, x2]
+            return float(x1 + (0.0 - y1) * (x2 - x1) / (y2 - y1))
+    return None
+
+
 def run_sweep_r(
     *,
     mode: str,
@@ -109,6 +141,9 @@ def run_sweep_r(
     summary_cols = [
         "run_id",
         "sweep_type",
+        "ensemble_n",
+        "seeds_n",
+        "base_seed",
         "r",
         "s",
         "p_fail",
@@ -213,6 +248,9 @@ def run_sweep_r(
         summary_row = {
             "run_id": run_id,
             "sweep_type": sweep_type,
+            "ensemble_n": int(n_ensemble),
+            "seeds_n": int(n_seeds),
+            "base_seed": int(config.BASE_SEED),
             "r": r_n,
             "s": s_fixed_n,
             "p_fail": p_fail_fixed_n,
@@ -240,26 +278,13 @@ def run_sweep_r(
     done = done.sort_values("r")
     done = done[done["n_seeds"] >= n_seeds]
     if len(done) >= 2:
-        rhos = done["mean_rho_V"].to_numpy(dtype=float, copy=False)
         rs = done["r"].to_numpy(dtype=float, copy=False)
-        has_neg = bool(np.any(rhos < 0))
-        has_pos = bool(np.any(rhos > 0))
-        if not (has_neg and has_pos):
+        rhos = done["mean_rho_V"].to_numpy(dtype=float, copy=False)
+        r_star = estimate_r_crit(rs, rhos)
+        if r_star is None:
             logger_warn("sweep_r: no sign-flip in range (no r* estimated)")
         else:
-            r_star: Optional[float] = None
-            for i in range(len(rs) - 1):
-                y1, y2 = rhos[i], rhos[i + 1]
-                if (y1 <= 0.0 <= y2) or (y2 <= 0.0 <= y1):
-                    if y1 == y2:
-                        r_star = float(rs[i])
-                    else:
-                        r_star = float(rs[i] + (0.0 - y1) * (rs[i + 1] - rs[i]) / (y2 - y1))
-                    break
-            if r_star is None or not math.isfinite(r_star):
-                logger_warn("sweep_r: sign flip detected but interpolation failed")
-            else:
-                logger_info(f"sweep_r: estimated r* ≈ {r_star:.6g}")
+            logger_info(f"sweep_r: estimated r* ≈ {r_star:.6g}")
 
     logger_info("END sweep_r")
 
@@ -285,6 +310,9 @@ def run_sweep_s(
     summary_cols = [
         "run_id",
         "sweep_type",
+        "ensemble_n",
+        "seeds_n",
+        "base_seed",
         "r",
         "s",
         "p_fail",
@@ -386,6 +414,9 @@ def run_sweep_s(
         summary_row = {
             "run_id": run_id,
             "sweep_type": sweep_type,
+            "ensemble_n": int(n_ensemble),
+            "seeds_n": int(n_seeds),
+            "base_seed": int(config.BASE_SEED),
             "r": r_fixed_n,
             "s": s_n,
             "p_fail": p_fail_fixed_n,
@@ -425,6 +456,9 @@ def run_sweep_pfail(
     summary_cols = [
         "run_id",
         "sweep_type",
+        "ensemble_n",
+        "seeds_n",
+        "base_seed",
         "r",
         "s",
         "p_fail",
@@ -523,9 +557,14 @@ def run_sweep_pfail(
         mask = _param_mask(seed_df, r=r_fixed_n, s=s_fixed_n, p_fail=p_fail_n)
         seed_rows = seed_df.loc[mask].copy()
         agg = _aggregate_seed_rows(seed_rows)
+        # Tail dominance is computed per-seed (top 1% share within each seed),
+        # then averaged across seeds; do NOT pool patches across seeds.
         summary_row = {
             "run_id": run_id,
             "sweep_type": sweep_type,
+            "ensemble_n": int(n_ensemble),
+            "seeds_n": int(n_seeds),
+            "base_seed": int(config.BASE_SEED),
             "r": r_fixed_n,
             "s": s_fixed_n,
             "p_fail": p_fail_n,

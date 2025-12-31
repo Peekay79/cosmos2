@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
+import math
 
 
 @dataclass(frozen=True)
@@ -163,9 +164,11 @@ def simulate_seed(
         if total_B <= 0:
             tail_top1_fraction = 0.0
         else:
-            top_n = max(1, int(round(0.01 * n_ensemble)))
-            top_vals = np.partition(B, n_ensemble - top_n)[n_ensemble - top_n :]
-            tail_top1_fraction = float(np.sum(top_vals) / total_B)
+            # Tail dominance is computed **within this seed only** (not pooled across seeds):
+            # sort by B descending and compute the fraction of total B from the top 1% patches.
+            top_n = max(1, int(math.ceil(0.01 * n_ensemble)))
+            B_sorted_desc = np.sort(B)[::-1]
+            tail_top1_fraction = float(np.sum(B_sorted_desc[:top_n]) / total_B)
 
     stats = SeedRunStats(
         rho_V=rho_V,
