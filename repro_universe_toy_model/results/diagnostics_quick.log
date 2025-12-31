@@ -1,0 +1,57 @@
+2025-12-31 15:47:13 | INFO | RUN START mode=quick n_ensemble=1000 n_seeds=1
+2025-12-31 15:47:13 | INFO | START sweep_r: r in [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0], s=0.5, p_fail=0.5
+2025-12-31 15:47:13 | INFO | sweep_r: running r=0.5 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_r: running r=0.75 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_r: running r=1.0 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_r: running r=1.25 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_r: running r=1.5 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_r: running r=2.0 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_r: running r=3.0 missing_seeds=[0]
+2025-12-31 15:47:13 | WARNING | sweep_r: no sign-flip in range (no r* estimated)
+2025-12-31 15:47:13 | INFO | END sweep_r
+2025-12-31 15:47:13 | INFO | START sweep_s: s in [0.0, 0.1, 0.2, 0.30000000000000004, 0.4, 0.5, 0.6000000000000001, 0.7000000000000001, 0.8, 0.9, 1.0], r=2.0, p_fail=0.5
+2025-12-31 15:47:13 | INFO | sweep_s: running s=0.0 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_s: running s=0.1 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_s: running s=0.2 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_s: running s=0.30000000000000004 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_s: running s=0.4 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_s: running s=0.5 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_s: running s=0.6000000000000001 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_s: running s=0.7000000000000001 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_s: running s=0.8 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_s: running s=0.9 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_s: running s=1.0 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | END sweep_s
+2025-12-31 15:47:13 | INFO | START sweep_pfail: p_fail in [0.1, 0.3, 0.5, 0.7, 0.9], r=2.0, s=0.5
+2025-12-31 15:47:13 | INFO | sweep_pfail: running p_fail=0.1 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_pfail: running p_fail=0.3 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_pfail: running p_fail=0.5 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_pfail: running p_fail=0.7 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | sweep_pfail: running p_fail=0.9 missing_seeds=[0]
+2025-12-31 15:47:13 | INFO | END sweep_pfail
+2025-12-31 15:47:13 | INFO | scatter_sample: generating N=5000 r=2.0 s=0.5 p_fail=0.5 seed=12345
+2025-12-31 15:47:13 | INFO | scatter_sample: wrote scatter_r2.0_s0.5_pfail0.5_quick.csv (mean_T=1.45872, mean_B=2.1242)
+2025-12-31 15:47:13 | INFO | RUN END
+2025-12-31 15:47:54 | INFO | RUN START mode=quick n_ensemble=1000 n_seeds=1
+2025-12-31 15:47:54 | INFO | START sweep_r: r in [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0], s=0.5, p_fail=0.5
+2025-12-31 15:47:54 | WARNING | sweep_r: no sign-flip in range (no r* estimated)
+2025-12-31 15:47:54 | INFO | END sweep_r
+2025-12-31 15:47:54 | INFO | START sweep_s: s in [0.0, 0.1, 0.2, 0.30000000000000004, 0.4, 0.5, 0.6000000000000001, 0.7000000000000001, 0.8, 0.9, 1.0], r=2.0, p_fail=0.5
+2025-12-31 15:47:54 | INFO | sweep_s: running s=0.30000000000000004 missing_seeds=[0]
+2025-12-31 15:47:54 | INFO | END sweep_s
+2025-12-31 15:47:54 | INFO | START sweep_pfail: p_fail in [0.1, 0.3, 0.5, 0.7, 0.9], r=2.0, s=0.5
+2025-12-31 15:47:54 | INFO | END sweep_pfail
+2025-12-31 15:47:54 | INFO | scatter_sample: generating N=5000 r=2.0 s=0.5 p_fail=0.5 seed=12345
+2025-12-31 15:47:54 | INFO | scatter_sample: wrote scatter_r2.0_s0.5_pfail0.5_quick.csv (mean_T=1.45872, mean_B=2.1242)
+2025-12-31 15:47:54 | INFO | RUN END
+2025-12-31 15:48:51 | INFO | RUN START mode=quick n_ensemble=1000 n_seeds=1
+2025-12-31 15:48:51 | INFO | START sweep_r: r in [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0], s=0.5, p_fail=0.5
+2025-12-31 15:48:51 | WARNING | sweep_r: no sign-flip in range (no r* estimated)
+2025-12-31 15:48:51 | INFO | END sweep_r
+2025-12-31 15:48:51 | INFO | START sweep_s: s in [0.0, 0.1, 0.2, 0.30000000000000004, 0.4, 0.5, 0.6000000000000001, 0.7000000000000001, 0.8, 0.9, 1.0], r=2.0, p_fail=0.5
+2025-12-31 15:48:51 | INFO | END sweep_s
+2025-12-31 15:48:51 | INFO | START sweep_pfail: p_fail in [0.1, 0.3, 0.5, 0.7, 0.9], r=2.0, s=0.5
+2025-12-31 15:48:51 | INFO | END sweep_pfail
+2025-12-31 15:48:51 | INFO | scatter_sample: generating N=5000 r=2.0 s=0.5 p_fail=0.5 seed=12345
+2025-12-31 15:48:51 | INFO | scatter_sample: wrote scatter_r2.0_s0.5_pfail0.5_quick.csv (mean_T=1.45872, mean_B=2.1242)
+2025-12-31 15:48:51 | INFO | RUN END
