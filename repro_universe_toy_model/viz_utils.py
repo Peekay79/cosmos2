@@ -16,9 +16,10 @@ import pandas as pd
 
 
 COLOURS = {
-    "non_int": "#999999",  # grey
-    "fail": "#E69F00",  # orange
-    "success": "#0072B2",  # blue
+    # High-contrast palette for categorical separation in Panel (D)
+    "non_int": "#D9D9D9",  # very light grey
+    "fail": "#D55E00",  # vivid warm orange/red
+    "success": "#0072B2",  # saturated cool blue
 }
 
 
@@ -272,7 +273,9 @@ def generate_main_figure():
         ax_r.set_xlabel(r"$r$ (cluster advantage)")
         ax_r.set_ylabel(r"$\rho_V$")
         ax_r.set_title(r"(A) Correlation vs cluster advantage $r$")
-        ax_r.grid(True, alpha=0.25)
+        # Light horizontal gridlines only (journal-like)
+        ax_r.grid(True, axis="y", alpha=0.20)
+        ax_r.grid(False, axis="x")
 
         # Explicitly annotate the tested r-range (reviewer-proof cue)
         if len(x) > 0 and np.isfinite(x).any():
@@ -312,15 +315,41 @@ def generate_main_figure():
             )
         else:
             # No sign-flip observed
-            ax_r.text(
-                0.05,
-                0.90,
-                "No sign-flip in sampled range",
-                transform=ax_r.transAxes,
-                fontsize=9,
-                va="top",
-                ha="left",
-            )
+            # Place a top-left annotation in data coordinates, safely inside the frame
+            try:
+                x_min, x_max = ax_r.get_xlim()
+                y_min, y_max = ax_r.get_ylim()
+                x_pad = 0.03 * (x_max - x_min) if np.isfinite(x_max - x_min) else 0.0
+                y_pad = 0.06 * (y_max - y_min) if np.isfinite(y_max - y_min) else 0.0
+
+                # Prefer a data-driven top position (close to the plotted range) when possible
+                y_top_data = float(np.nanmax(rho_upper)) if np.isfinite(rho_upper).any() else float(np.nanmax(y))
+                if np.isfinite(y_top_data) and np.isfinite(y_min) and (y_top_data > y_min):
+                    y_annot = min(y_max - y_pad, y_top_data - 0.03 * (y_top_data - y_min))
+                else:
+                    y_annot = y_max - y_pad
+
+                ax_r.text(
+                    x_min + x_pad,
+                    y_annot,
+                    "No sign-flip in sampled r-range",
+                    fontsize=9,
+                    va="top",
+                    ha="left",
+                    clip_on=False,
+                )
+            except Exception:
+                # Fallback (should be rare): keep it visible in axes coords
+                ax_r.text(
+                    0.05,
+                    0.95,
+                    "No sign-flip in sampled r-range",
+                    transform=ax_r.transAxes,
+                    fontsize=9,
+                    va="top",
+                    ha="left",
+                    clip_on=False,
+                )
 
         any_panel = True
     except FileNotFoundError:
@@ -359,7 +388,9 @@ def generate_main_figure():
         ax_s.set_xlabel(r"$s$ (optimisation strength)")
         ax_s.set_ylabel(r"$\rho_V$")
         ax_s.set_title(r"(B) Correlation vs optimisation strength $s$")
-        ax_s.grid(True, alpha=0.25)
+        # Light horizontal gridlines only (journal-like)
+        ax_s.grid(True, axis="y", alpha=0.20)
+        ax_s.grid(False, axis="x")
         any_panel = True
     except FileNotFoundError:
         print(f"[WARN] sweep_s panel skipped (missing CSV): {sweep_s_path}")
@@ -390,9 +421,10 @@ def generate_main_figure():
             y,
             yerr=yerr,
             fmt="none",
-            ecolor="black",
-            elinewidth=1.0,
+            ecolor="#222222",
+            elinewidth=1.3,
             capsize=3,
+            capthick=1.3,
             alpha=0.9,
         )
         ax_pfail.axhline(0.0, color="black", linewidth=1.0, alpha=0.6)
@@ -401,7 +433,8 @@ def generate_main_figure():
         ax_pfail.set_xlabel(r"$p_{\mathrm{fail}}$")
         ax_pfail.set_ylabel(r"$\rho_V$")
         ax_pfail.set_title(r"(C) Robustness to failure probability")
-        ax_pfail.grid(True, axis="y", alpha=0.25)
+        ax_pfail.grid(True, axis="y", alpha=0.20)
+        ax_pfail.grid(False, axis="x")
 
         # Numeric labels above bars (make small differences obvious)
         for xv, yv in zip(x, y):
@@ -443,23 +476,22 @@ def generate_main_figure():
         d = d.dropna(subset=[t_col, b_col, c_col])
 
         categories = ["non_int", "fail", "success"]
-        labels = {
-            "non_int": "Non-intelligent",
-            "fail": "Failed intelligent",
-            "success": "Successful intelligent",
-        }
 
         # Plot three separate layers for clear category separation
         for cat in categories:
             sub = d[d[c_col] == cat]
             if sub.empty:
                 continue
+            if cat == "success":
+                s, alpha = 19, 0.80
+            else:
+                s, alpha = 9, 0.22
             ax_scatter.scatter(
                 sub[t_col],
                 sub[b_col],
-                s=10,
-                alpha=0.5,
-                label=labels[cat],
+                s=s,
+                alpha=alpha,
+                label=cat,
                 color=COLOURS.get(cat, "#000000"),
                 edgecolors="none",
             )
@@ -467,8 +499,31 @@ def generate_main_figure():
         ax_scatter.set_xlabel(r"$T$ (lifetime)")
         ax_scatter.set_ylabel(r"$B$ (fragmentation count)")
         ax_scatter.set_title(r"(D) Tail dominance in $(T,B)$")
-        ax_scatter.grid(True, alpha=0.25)
+        # Subtle grid; allow both directions for readability here
+        ax_scatter.grid(True, axis="both", alpha=0.18)
         ax_scatter.legend(frameon=False, fontsize=9, loc="upper left")
+
+        # Annotate the sparse successful tail (if present)
+        succ = d[d[c_col] == "success"]
+        if not succ.empty:
+            t_s = pd.to_numeric(succ[t_col], errors="coerce").to_numpy()
+            b_s = pd.to_numeric(succ[b_col], errors="coerce").to_numpy()
+            if np.isfinite(t_s).any() and np.isfinite(b_s).any():
+                # Aim at an upper-quantile point rather than a single extreme outlier
+                tail_t = float(np.nanpercentile(t_s, 90))
+                tail_b = float(np.nanpercentile(b_s, 90))
+                ax_scatter.annotate(
+                    "Sparse high-T, high-B 'success' tail",
+                    xy=(tail_t, tail_b),
+                    xycoords="data",
+                    xytext=(0.64, 0.92),
+                    textcoords="axes fraction",
+                    ha="left",
+                    va="top",
+                    fontsize=9,
+                    arrowprops=dict(arrowstyle="->", lw=1.0, color="black", shrinkA=2, shrinkB=2),
+                    clip_on=False,
+                )
         any_panel = True
     except FileNotFoundError:
         print(f"[WARN] scatter panel skipped (missing CSV): {scatter_path}")
