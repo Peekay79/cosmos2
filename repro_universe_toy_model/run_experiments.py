@@ -5,6 +5,7 @@ import argparse
 from . import config
 from .experiments import export_scatter_sample, run_sweep_pfail, run_sweep_r, run_sweep_s
 from .io_utils import ensure_results_layout, get_logger
+from .viz_utils import generate_main_figure
 
 
 def parse_args() -> argparse.Namespace:
@@ -79,6 +80,10 @@ def main() -> None:
             logger_warn=warn,
             logger_info=info,
         )
+
+    # Figure generation is part of the full-pipeline "all" run.
+    if only == "all" and mode == "full":
+        generate_main_figure(mode=mode)
 
     logger.info("RUN END")
 

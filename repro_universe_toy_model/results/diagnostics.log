@@ -14,3 +14,29 @@
 2025-12-31 16:49:42 | WARNING | sweep_r: no sign-flip in range (no r* estimated)
 2025-12-31 16:49:42 | INFO | END sweep_r
 2025-12-31 16:49:42 | INFO | RUN END
+2026-01-01 16:02:32 | INFO | RUN START mode=full n_ensemble=100000 n_seeds=5
+2026-01-01 16:02:32 | INFO | START sweep_r: r in [0.2, 0.3, 0.4, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0], s=0.5, p_fail=0.5
+2026-01-01 16:02:32 | WARNING | sweep_r: no sign-flip in range (no r* estimated)
+2026-01-01 16:02:32 | INFO | END sweep_r
+2026-01-01 16:02:32 | INFO | START sweep_s: s in [0.0, 0.1, 0.2, 0.30000000000000004, 0.4, 0.5, 0.6000000000000001, 0.7000000000000001, 0.8, 0.9, 1.0], r=2.0, p_fail=0.5
+2026-01-01 16:02:32 | INFO | sweep_s: running s=0.0 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:32 | INFO | sweep_s: running s=0.1 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:32 | INFO | sweep_s: running s=0.2 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:32 | INFO | sweep_s: running s=0.30000000000000004 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:32 | INFO | sweep_s: running s=0.4 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:33 | INFO | sweep_s: running s=0.5 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:33 | INFO | sweep_s: running s=0.6000000000000001 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:33 | INFO | sweep_s: running s=0.7000000000000001 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:33 | INFO | sweep_s: running s=0.8 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:33 | INFO | sweep_s: running s=0.9 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:33 | INFO | sweep_s: running s=1.0 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:33 | INFO | END sweep_s
+2026-01-01 16:02:33 | INFO | START sweep_pfail: p_fail in [0.1, 0.3, 0.5, 0.7, 0.9], r=2.0, s=0.5
+2026-01-01 16:02:33 | INFO | sweep_pfail: running p_fail=0.1 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:33 | INFO | sweep_pfail: running p_fail=0.3 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:33 | INFO | sweep_pfail: running p_fail=0.5 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:33 | INFO | sweep_pfail: running p_fail=0.7 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:34 | INFO | sweep_pfail: running p_fail=0.9 missing_seeds=[0, 1, 2, 3, 4]
+2026-01-01 16:02:34 | INFO | END sweep_pfail
+2026-01-01 16:02:34 | INFO | scatter_sample: generating N=50000 r=2.0 s=0.5 p_fail=0.5 seed=12345
+2026-01-01 16:02:34 | INFO | scatter_sample: wrote scatter_r2.0_s0.5_pfail0.5.csv (mean_T=1.47658, mean_B=2.12534)
