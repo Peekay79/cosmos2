@@ -80,6 +80,15 @@ def main() -> None:
             logger_info=info,
         )
 
+    print("\n[Step] Generating figures from existing results (if available)...")
+    try:
+        from .viz_utils import generate_main_figure
+
+        generate_main_figure()
+        print("✓ Figure 1 written under repro_universe_toy_model/results/figures/")
+    except Exception as e:
+        print(f"[WARN] Figure generation skipped or failed: {e}")
+
     logger.info("RUN END")
 
 
