@@ -16,10 +16,9 @@ import pandas as pd
 
 
 COLOURS = {
-    # High-contrast palette for categorical separation in Panel (D)
-    "non_int": "#BDBDBD",  # light grey
-    "fail": "#D55E00",  # vivid orange/red
-    "success": "#0072B2",  # saturated blue
+    "non_int": "#BDBDBD",   # light grey
+    "fail":    "#D55E00",   # vivid orange
+    "success": "#009E73",   # saturated green
 }
 
 
@@ -283,7 +282,7 @@ def generate_main_figure():
             r_max = float(np.nanmax(x))
             ax_r.text(
                 0.02,
-                0.05,
+                0.04,
                 rf"Tested range: {r_min:.1f} ≤ r ≤ {r_max:.1f}",
                 transform=ax_r.transAxes,
                 fontsize=9,
@@ -318,13 +317,11 @@ def generate_main_figure():
             # No sign-flip observed
             # Place inside axes, top-left, in axes coordinates so it never overlaps the curve
             ax_r.text(
-                0.02,
-                0.95,
+                0.02, 0.95,
                 "No sign-flip in sampled r-range",
                 transform=ax_r.transAxes,
-                ha="left",
-                va="top",
-                fontsize=10,
+                ha="left", va="top",
+                fontsize=9,
             )
 
         any_panel = True
@@ -443,53 +440,63 @@ def generate_main_figure():
     try:
         if df_sc is None:
             raise FileNotFoundError(scatter_path)
-        d = df_sc.copy()
-        t_col = _col(d, "T")
-        b_col = _col(d, "B")
-        c_col = _col(d, "category")
-        d[t_col] = pd.to_numeric(d[t_col], errors="coerce")
-        d[b_col] = pd.to_numeric(d[b_col], errors="coerce")
-        d = d.dropna(subset=[t_col, b_col, c_col])
+        df_scatter = df_sc.copy()
+        # Validate expected columns exist (keep plotting-only behavior)
+        _col(df_scatter, "T")
+        _col(df_scatter, "B")
+        _col(df_scatter, "category")
+        df_scatter["T"] = pd.to_numeric(df_scatter["T"], errors="coerce")
+        df_scatter["B"] = pd.to_numeric(df_scatter["B"], errors="coerce")
+        df_scatter = df_scatter.dropna(subset=["T", "B", "category"])
 
-        categories = ["non_int", "fail", "success"]
-        sizes = {
-            "non_int": 9,
-            "fail": 9,
-            "success": 22,
-        }
-        alphas = {
-            "non_int": 0.18,
-            "fail": 0.22,
-            "success": 0.85,
-        }
-
-        # Plot each category in a separate scatter call (no seaborn hue shortcut)
-        for cat in categories:
-            subset = d[d[c_col] == cat]
-            if subset.empty:
+        cats = ["non_int", "fail", "success"]
+        for cat in cats:
+            mask = df_scatter["category"] == cat
+            if not mask.any():
                 continue
-            ax_scatter.scatter(
-                subset[t_col],
-                subset[b_col],
-                s=sizes[cat],
-                alpha=alphas[cat],
-                color=COLOURS.get(cat, "#000000"),
-                label=cat,
-                linewidths=0,
-            )
+            x = df_scatter.loc[mask, "T"]
+            y = df_scatter.loc[mask, "B"]
+
+            if cat == "success":
+                ax_scatter.scatter(
+                    x, y,
+                    s=24,
+                    alpha=0.9,
+                    color=COLOURS[cat],
+                    label="successful intelligent",
+                    linewidths=0,
+                )
+            elif cat == "fail":
+                ax_scatter.scatter(
+                    x, y,
+                    s=12,
+                    alpha=0.4,
+                    color=COLOURS[cat],
+                    label="failed intelligent",
+                    linewidths=0,
+                )
+            else:
+                ax_scatter.scatter(
+                    x, y,
+                    s=10,
+                    alpha=0.25,
+                    color=COLOURS[cat],
+                    label="non-intelligent",
+                    linewidths=0,
+                )
 
         ax_scatter.set_xlabel(r"$T$ (lifetime)")
         ax_scatter.set_ylabel(r"$B$ (fragmentation count)")
         ax_scatter.set_title(r"(D) Tail dominance in $(T,B)$")
         # Subtle grid; allow both directions for readability here
         ax_scatter.grid(True, axis="both", alpha=0.18)
-        ax_scatter.legend(title=None, loc="upper left", frameon=False)
+        ax_scatter.legend(loc="upper left", frameon=False, fontsize=8)
 
         # Annotate the sparse successful tail (if present)
-        succ = d[d[c_col] == "success"]
+        succ = df_scatter[df_scatter["category"] == "success"]
         if not succ.empty:
-            t_s = pd.to_numeric(succ[t_col], errors="coerce").to_numpy()
-            b_s = pd.to_numeric(succ[b_col], errors="coerce").to_numpy()
+            t_s = pd.to_numeric(succ["T"], errors="coerce").to_numpy()
+            b_s = pd.to_numeric(succ["B"], errors="coerce").to_numpy()
             if np.isfinite(t_s).any() and np.isfinite(b_s).any():
                 # Aim at an upper-quantile point rather than a single extreme outlier
                 tail_t = float(np.nanpercentile(t_s, 90))
@@ -507,6 +514,7 @@ def generate_main_figure():
                     color="#222222",
                     arrowprops=dict(arrowstyle="->", color="#222222", lw=1.0),
                     clip_on=False,
+                    zorder=5,
                 )
         any_panel = True
     except FileNotFoundError:
