@@ -14,3 +14,9 @@
 2025-12-31 16:49:42 | WARNING | sweep_r: no sign-flip in range (no r* estimated)
 2025-12-31 16:49:42 | INFO | END sweep_r
 2025-12-31 16:49:42 | INFO | RUN END
+2026-01-01 16:07:36 | INFO | RUN START mode=full n_ensemble=100000 n_seeds=5
+2026-01-01 16:07:36 | INFO | RUN CONFIG only=sweep_r
+2026-01-01 16:07:36 | INFO | START sweep_r: r in [0.2, 0.3, 0.4, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0], s=0.5, p_fail=0.5
+2026-01-01 16:07:36 | WARNING | sweep_r: no sign-flip in range (no r* estimated)
+2026-01-01 16:07:36 | INFO | END sweep_r
+2026-01-01 16:07:37 | INFO | RUN END
