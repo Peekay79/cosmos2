@@ -15,6 +15,13 @@ import numpy as np
 import pandas as pd
 
 
+COLOURS = {
+    "non_int": "#999999",  # grey
+    "fail": "#E69F00",  # orange
+    "success": "#0072B2",  # blue
+}
+
+
 def _try_import_seaborn() -> tuple[bool, object | None]:
     try:
         import seaborn as sns  # type: ignore
@@ -172,25 +179,27 @@ def generate_main_figure():
 
     # Imports and style
     has_sns, sns = _try_import_seaborn()
+    import matplotlib as mpl
     import matplotlib.pyplot as plt
 
     if has_sns:
         sns.set_theme(style="whitegrid")  # type: ignore[union-attr]
-        palette = sns.color_palette("colorblind")  # type: ignore[union-attr]
-    else:
-        plt.rcParams.update(
-            {
-                "font.size": 12,
-                "axes.labelsize": 13,
-                "axes.titlesize": 14,
-                "axes.linewidth": 1.2,
-                "lines.linewidth": 2.0,
-                "xtick.major.width": 1.1,
-                "ytick.major.width": 1.1,
-                "legend.frameon": True,
-            }
-        )
-        palette = ["#0072B2", "#D55E00", "#009E73", "#CC79A7", "#56B4E9"]
+
+    # rcParams should override seaborn theme if seaborn is present
+    mpl.rcParams.update(
+        {
+            "font.family": "serif",
+            "font.size": 11,
+            "axes.titlesize": 12,
+            "axes.labelsize": 11,
+            "xtick.labelsize": 10,
+            "ytick.labelsize": 10,
+            "legend.fontsize": 10,
+            "axes.linewidth": 1.0,
+            "lines.linewidth": 1.5,
+            "grid.linewidth": 0.6,
+        }
+    )
 
     _, results_dir = _base_dirs()
 
@@ -246,24 +255,24 @@ def generate_main_figure():
         ci_lo, ci_hi = _compute_ci95(d)
         y = pd.to_numeric(d[_col(d, "mean_rho_V")], errors="coerce").to_numpy()
         x = pd.to_numeric(d[r_col], errors="coerce").to_numpy()
-        yerr = np.vstack([y - ci_lo, ci_hi - y])
+        rho_lower, rho_upper = ci_lo, ci_hi
+        yerr = np.vstack([y - rho_lower, rho_upper - y])
 
         ax_r.errorbar(
             x,
             y,
             yerr=yerr,
-            fmt="o-",
-            color=palette[0],
-            ecolor=palette[0],
-            elinewidth=1.2,
+            fmt="-o",
             capsize=3,
-            markersize=5,
-            label=r"$\rho_V$ (mean ± 95% CI)",
+            color=COLOURS["success"],
+            ecolor=COLOURS["success"],
+            markersize=4.5,
         )
         ax_r.axhline(0.0, color="black", linewidth=1.0, alpha=0.6)
-        ax_r.set_xlabel("r (cluster advantage)")
+        ax_r.set_xlabel(r"$r$ (cluster advantage)")
         ax_r.set_ylabel(r"$\rho_V$")
-        ax_r.set_title("Correlation vs. cluster advantage r")
+        ax_r.set_title(r"(A) Correlation vs cluster advantage $r$")
+        ax_r.grid(True, alpha=0.25)
 
         r_crit = _maybe_read_r_crit(results_dir)
         if r_crit is None:
@@ -275,24 +284,29 @@ def generate_main_figure():
             ax_r.axvline(
                 r_crit,
                 linestyle="--",
-                color=palette[1],
-                linewidth=2.0,
-                label=fr"$r_{{crit}} \approx {r_crit:.3g}$",
+                color=COLOURS["fail"],
+                linewidth=1.0,
             )
-            ax_r.legend(loc="best")
+            ax_r.text(
+                0.98,
+                0.95,
+                fr"$r_{{crit}} \approx {r_crit:.3g}$",
+                transform=ax_r.transAxes,
+                fontsize=9,
+                va="top",
+                ha="right",
+            )
         else:
             # No sign-flip observed
             ax_r.text(
-                0.02,
-                0.02,
-                "No sign-flip observed\nin sampled r-range",
+                0.05,
+                0.92,
+                "No sign-flip in sampled range",
                 transform=ax_r.transAxes,
-                fontsize=11,
-                va="bottom",
+                fontsize=9,
+                va="top",
                 ha="left",
-                bbox=dict(boxstyle="round,pad=0.25", facecolor="white", alpha=0.8),
             )
-            ax_r.legend(loc="best")
 
         any_panel = True
     except FileNotFoundError:
@@ -314,23 +328,24 @@ def generate_main_figure():
         ci_lo, ci_hi = _compute_ci95(d)
         y = pd.to_numeric(d[_col(d, "mean_rho_V")], errors="coerce").to_numpy()
         x = pd.to_numeric(d[s_col], errors="coerce").to_numpy()
-        yerr = np.vstack([y - ci_lo, ci_hi - y])
+        rho_lower, rho_upper = ci_lo, ci_hi
+        yerr = np.vstack([y - rho_lower, rho_upper - y])
 
         ax_s.errorbar(
             x,
             y,
             yerr=yerr,
-            fmt="o-",
-            color=palette[2] if len(palette) > 2 else palette[0],
-            ecolor=palette[2] if len(palette) > 2 else palette[0],
-            elinewidth=1.2,
+            fmt="-o",
             capsize=3,
-            markersize=5,
+            color=COLOURS["success"],
+            ecolor=COLOURS["success"],
+            markersize=4.5,
         )
         ax_s.axhline(0.0, color="black", linewidth=1.0, alpha=0.6)
-        ax_s.set_xlabel("s (optimisation strength)")
+        ax_s.set_xlabel(r"$s$ (optimisation strength)")
         ax_s.set_ylabel(r"$\rho_V$")
-        ax_s.set_title("Correlation vs. optimisation strength s")
+        ax_s.set_title(r"(B) Correlation vs optimisation strength $s$")
+        ax_s.grid(True, alpha=0.25)
         any_panel = True
     except FileNotFoundError:
         print(f"[WARN] sweep_s panel skipped (missing CSV): {sweep_s_path}")
@@ -351,16 +366,13 @@ def generate_main_figure():
         ci_lo, ci_hi = _compute_ci95(d)
         y = pd.to_numeric(d[_col(d, "mean_rho_V")], errors="coerce").to_numpy()
         x = pd.to_numeric(d[pf_col], errors="coerce").to_numpy()
-        yerr = np.vstack([y - ci_lo, ci_hi - y])
+        rho_lower, rho_upper = ci_lo, ci_hi
+        yerr = np.vstack([y - rho_lower, rho_upper - y])
 
-        bars = ax_pfail.bar(
-            np.arange(len(x)),
-            y,
-            color=palette[3] if len(palette) > 3 else palette[1],
-            alpha=0.9,
-        )
+        xx = np.arange(len(x))
+        ax_pfail.bar(xx, y, color=COLOURS["fail"], alpha=0.9)
         ax_pfail.errorbar(
-            np.arange(len(x)),
+            xx,
             y,
             yerr=yerr,
             fmt="none",
@@ -370,11 +382,12 @@ def generate_main_figure():
             alpha=0.9,
         )
         ax_pfail.axhline(0.0, color="black", linewidth=1.0, alpha=0.6)
-        ax_pfail.set_xticks(np.arange(len(x)))
-        ax_pfail.set_xticklabels([f"{v:g}" for v in x])
+        ax_pfail.set_xticks(xx)
+        ax_pfail.set_xticklabels([f"{v:.1f}" for v in x])
         ax_pfail.set_xlabel(r"$p_{\mathrm{fail}}$")
         ax_pfail.set_ylabel(r"$\rho_V$")
-        ax_pfail.set_title("Robustness to failure probability")
+        ax_pfail.set_title(r"(C) Robustness to failure probability")
+        ax_pfail.grid(True, axis="y", alpha=0.25)
         any_panel = True
     except FileNotFoundError:
         print(f"[WARN] sweep_pfail panel skipped (missing CSV): {sweep_pfail_path}")
@@ -395,35 +408,29 @@ def generate_main_figure():
         d[b_col] = pd.to_numeric(d[b_col], errors="coerce")
         d = d.dropna(subset=[t_col, b_col, c_col])
 
-        # Category styling (explicit, to keep "success" tail clear)
-        cat_colors = {
-            "non_int": "#B0B0B0",
-            "fail": "#D55E00",
-            "success": "#0072B2",
-        }
-        categories = list(pd.unique(d[c_col]))
-        # Stable ordering if the expected labels exist
-        preferred = [c for c in ["non_int", "fail", "success"] if c in categories]
-        rest = [c for c in categories if c not in preferred]
-        ordered = preferred + rest
-
-        for cat in ordered:
+        for cat, label in [
+            ("non_int", "Non-intelligent"),
+            ("fail", "Failed intelligent"),
+            ("success", "Successful intelligent"),
+        ]:
             sub = d[d[c_col] == cat]
-            color = cat_colors.get(str(cat), palette[0])
+            if sub.empty:
+                continue
             ax_scatter.scatter(
                 sub[t_col].to_numpy(),
                 sub[b_col].to_numpy(),
-                s=18,
-                alpha=0.45,
-                color=color,
+                alpha=0.5 if cat != "success" else 0.8,
+                s=8 if cat != "success" else 12,
+                label=label,
+                color=COLOURS.get(cat),
                 edgecolors="none",
-                label=str(cat),
             )
 
-        ax_scatter.set_xlabel("T (lifetime)")
-        ax_scatter.set_ylabel("B (fragmentation count)")
-        ax_scatter.set_title(r"Tail dominance in $(T, B)$")
-        ax_scatter.legend(loc="best", title="category")
+        ax_scatter.set_xlabel(r"$T$ (lifetime)")
+        ax_scatter.set_ylabel(r"$B$ (fragmentation count)")
+        ax_scatter.set_title(r"(D) Tail dominance in $(T,B)$")
+        ax_scatter.grid(True, alpha=0.25)
+        ax_scatter.legend(frameon=False, loc="best")
         any_panel = True
     except FileNotFoundError:
         print(f"[WARN] scatter panel skipped (missing CSV): {scatter_path}")
@@ -448,6 +455,5 @@ def generate_main_figure():
     fig.savefig(pdf_path, bbox_inches="tight")
     plt.close(fig)
 
-    print(f"[OK] Wrote Figure 1: {png_path}")
-    print(f"[OK] Wrote Figure 1: {pdf_path}")
+    print(f"[FIGURE] Saved Figure 1 to {png_path} and {pdf_path}")
 
