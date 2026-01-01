@@ -16,9 +16,9 @@ import pandas as pd
 
 
 COLOURS = {
-    "non_int": "#BDBDBD",   # light grey
-    "fail":    "#D55E00",   # vivid orange
-    "success": "#009E73",   # saturated green
+    "non_int": "#0072B2",   # blue
+    "fail":    "#D55E00",   # orange
+    "success": "#009E73",   # green
 }
 
 
@@ -450,72 +450,66 @@ def generate_main_figure():
         df_scatter = df_scatter.dropna(subset=["T", "B", "category"])
 
         cats = ["non_int", "fail", "success"]
-        for cat in cats:
-            mask = df_scatter["category"] == cat
-            if not mask.any():
-                continue
-            x = df_scatter.loc[mask, "T"]
-            y = df_scatter.loc[mask, "B"]
+        df_cats = {c: df_scatter[df_scatter["category"] == c] for c in cats}
 
-            if cat == "success":
-                ax_scatter.scatter(
-                    x, y,
-                    s=24,
-                    alpha=0.9,
-                    color=COLOURS[cat],
-                    label="successful intelligent",
-                    linewidths=0,
-                )
-            elif cat == "fail":
-                ax_scatter.scatter(
-                    x, y,
-                    s=12,
-                    alpha=0.4,
-                    color=COLOURS[cat],
-                    label="failed intelligent",
-                    linewidths=0,
-                )
-            else:
-                ax_scatter.scatter(
-                    x, y,
-                    s=10,
-                    alpha=0.25,
-                    color=COLOURS[cat],
-                    label="non-intelligent",
-                    linewidths=0,
-                )
+        # non_int
+        ax_scatter.scatter(
+            df_cats["non_int"]["T"],
+            df_cats["non_int"]["B"],
+            s=9,
+            alpha=0.25,
+            color=COLOURS["non_int"],
+            linewidths=0,
+            label="non-intelligent",
+        )
+
+        # fail
+        ax_scatter.scatter(
+            df_cats["fail"]["T"],
+            df_cats["fail"]["B"],
+            s=9,
+            alpha=0.30,
+            color=COLOURS["fail"],
+            linewidths=0,
+            label="failed intelligent",
+        )
+
+        # success
+        ax_scatter.scatter(
+            df_cats["success"]["T"],
+            df_cats["success"]["B"],
+            s=24,
+            alpha=0.85,
+            color=COLOURS["success"],
+            linewidths=0,
+            label="successful intelligent",
+        )
 
         ax_scatter.set_xlabel(r"$T$ (lifetime)")
         ax_scatter.set_ylabel(r"$B$ (fragmentation count)")
-        ax_scatter.set_title(r"(D) Tail dominance in $(T,B)$")
+        ax_scatter.set_title("(D) Tail dominance in $(T, B)$")
         # Subtle grid; allow both directions for readability here
         ax_scatter.grid(True, axis="both", alpha=0.18)
-        ax_scatter.legend(loc="upper left", frameon=False, fontsize=8)
+        leg = ax_scatter.legend(
+            loc="upper left",
+            bbox_to_anchor=(0.01, 0.98),
+            frameon=False,
+            fontsize=9,
+        )
 
         # Annotate the sparse successful tail (if present)
         succ = df_scatter[df_scatter["category"] == "success"]
         if not succ.empty:
-            t_s = pd.to_numeric(succ["T"], errors="coerce").to_numpy()
-            b_s = pd.to_numeric(succ["B"], errors="coerce").to_numpy()
-            if np.isfinite(t_s).any() and np.isfinite(b_s).any():
-                # Aim at an upper-quantile point rather than a single extreme outlier
-                tail_t = float(np.nanpercentile(t_s, 90))
-                tail_b = float(np.nanpercentile(b_s, 90))
-                ax_scatter.annotate(
-                    "Sparse high-T, high-B 'success' tail",
-                    xy=(tail_t, tail_b),
-                    xycoords="data",
-                    # Keep label away from densest part of the cloud (use axes coords)
-                    xytext=(0.42, 0.92),
-                    textcoords="axes fraction",
-                    ha="center",
-                    va="top",
-                    fontsize=9,
-                    color="#222222",
-                    arrowprops=dict(arrowstyle="->", color="#222222", lw=1.0),
-                    clip_on=False,
-                    zorder=5,
-                )
+            ax_scatter.annotate(
+                "Sparse high-T, high-B 'success' tail",
+                xy=(0.80, 0.80),
+                xycoords="axes fraction",
+                xytext=(0.60, 0.92),
+                textcoords="axes fraction",
+                arrowprops=dict(arrowstyle="->", linewidth=0.8, color="#222222"),
+                fontsize=9,
+                color="#222222",
+            )
         any_panel = True
     except FileNotFoundError:
         print(f"[WARN] scatter panel skipped (missing CSV): {scatter_path}")
