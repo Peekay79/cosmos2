@@ -274,6 +274,20 @@ def generate_main_figure():
         ax_r.set_title(r"(A) Correlation vs cluster advantage $r$")
         ax_r.grid(True, alpha=0.25)
 
+        # Explicitly annotate the tested r-range (reviewer-proof cue)
+        if len(x) > 0 and np.isfinite(x).any():
+            r_min = float(np.nanmin(x))
+            r_max = float(np.nanmax(x))
+            ax_r.text(
+                0.02,
+                0.05,
+                rf"Tested range: {r_min:.1f} ≤ r ≤ {r_max:.1f}",
+                transform=ax_r.transAxes,
+                fontsize=9,
+                va="bottom",
+                ha="left",
+            )
+
         r_crit = _maybe_read_r_crit(results_dir)
         if r_crit is None:
             r_crit, saw_flip = _estimate_r_crit_from_sign_flip(d)
@@ -300,7 +314,7 @@ def generate_main_figure():
             # No sign-flip observed
             ax_r.text(
                 0.05,
-                0.92,
+                0.90,
                 "No sign-flip in sampled range",
                 transform=ax_r.transAxes,
                 fontsize=9,
@@ -369,10 +383,10 @@ def generate_main_figure():
         rho_lower, rho_upper = ci_lo, ci_hi
         yerr = np.vstack([y - rho_lower, rho_upper - y])
 
-        xx = np.arange(len(x))
-        ax_pfail.bar(xx, y, color=COLOURS["fail"], alpha=0.9)
+        # Use actual p_fail values for positioning so tick spacing matches the sweep
+        ax_pfail.bar(x, y, width=0.12, color=COLOURS["fail"], alpha=0.9)
         ax_pfail.errorbar(
-            xx,
+            x,
             y,
             yerr=yerr,
             fmt="none",
@@ -382,12 +396,32 @@ def generate_main_figure():
             alpha=0.9,
         )
         ax_pfail.axhline(0.0, color="black", linewidth=1.0, alpha=0.6)
-        ax_pfail.set_xticks(xx)
+        ax_pfail.set_xticks(x)
         ax_pfail.set_xticklabels([f"{v:.1f}" for v in x])
         ax_pfail.set_xlabel(r"$p_{\mathrm{fail}}$")
         ax_pfail.set_ylabel(r"$\rho_V$")
         ax_pfail.set_title(r"(C) Robustness to failure probability")
         ax_pfail.grid(True, axis="y", alpha=0.25)
+
+        # Numeric labels above bars (make small differences obvious)
+        for xv, yv in zip(x, y):
+            if not np.isfinite(xv) or not np.isfinite(yv):
+                continue
+            ax_pfail.text(
+                float(xv),
+                float(yv) + 0.01,
+                f"{float(yv):.3f}",
+                ha="center",
+                va="bottom",
+                fontsize=9,
+            )
+
+        # Ensure labels are not clipped by the y-limits
+        if len(rho_upper) > 0 and np.isfinite(rho_upper).any():
+            top = float(np.nanmax(rho_upper) + 0.05)
+            bottom, _ = ax_pfail.get_ylim()
+            ax_pfail.set_ylim(bottom=bottom, top=top)
+
         any_panel = True
     except FileNotFoundError:
         print(f"[WARN] sweep_pfail panel skipped (missing CSV): {sweep_pfail_path}")
@@ -408,21 +442,25 @@ def generate_main_figure():
         d[b_col] = pd.to_numeric(d[b_col], errors="coerce")
         d = d.dropna(subset=[t_col, b_col, c_col])
 
-        for cat, label in [
-            ("non_int", "Non-intelligent"),
-            ("fail", "Failed intelligent"),
-            ("success", "Successful intelligent"),
-        ]:
+        categories = ["non_int", "fail", "success"]
+        labels = {
+            "non_int": "Non-intelligent",
+            "fail": "Failed intelligent",
+            "success": "Successful intelligent",
+        }
+
+        # Plot three separate layers for clear category separation
+        for cat in categories:
             sub = d[d[c_col] == cat]
             if sub.empty:
                 continue
             ax_scatter.scatter(
-                sub[t_col].to_numpy(),
-                sub[b_col].to_numpy(),
-                alpha=0.5 if cat != "success" else 0.8,
-                s=8 if cat != "success" else 12,
-                label=label,
-                color=COLOURS.get(cat),
+                sub[t_col],
+                sub[b_col],
+                s=10,
+                alpha=0.5,
+                label=labels[cat],
+                color=COLOURS.get(cat, "#000000"),
                 edgecolors="none",
             )
 
@@ -430,7 +468,7 @@ def generate_main_figure():
         ax_scatter.set_ylabel(r"$B$ (fragmentation count)")
         ax_scatter.set_title(r"(D) Tail dominance in $(T,B)$")
         ax_scatter.grid(True, alpha=0.25)
-        ax_scatter.legend(frameon=False, loc="best")
+        ax_scatter.legend(frameon=False, fontsize=9, loc="upper left")
         any_panel = True
     except FileNotFoundError:
         print(f"[WARN] scatter panel skipped (missing CSV): {scatter_path}")
