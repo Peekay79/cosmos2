@@ -17,9 +17,9 @@ import pandas as pd
 
 COLOURS = {
     # High-contrast palette for categorical separation in Panel (D)
-    "non_int": "#D9D9D9",  # very light grey
-    "fail": "#D55E00",  # vivid warm orange/red
-    "success": "#0072B2",  # saturated cool blue
+    "non_int": "#BDBDBD",  # light grey
+    "fail": "#D55E00",  # vivid orange/red
+    "success": "#0072B2",  # saturated blue
 }
 
 
@@ -289,6 +289,7 @@ def generate_main_figure():
                 fontsize=9,
                 va="bottom",
                 ha="left",
+                bbox=dict(facecolor="white", edgecolor="none", alpha=0.70, pad=1.6),
             )
 
         r_crit = _maybe_read_r_crit(results_dir)
@@ -315,41 +316,16 @@ def generate_main_figure():
             )
         else:
             # No sign-flip observed
-            # Place a top-left annotation in data coordinates, safely inside the frame
-            try:
-                x_min, x_max = ax_r.get_xlim()
-                y_min, y_max = ax_r.get_ylim()
-                x_pad = 0.03 * (x_max - x_min) if np.isfinite(x_max - x_min) else 0.0
-                y_pad = 0.06 * (y_max - y_min) if np.isfinite(y_max - y_min) else 0.0
-
-                # Prefer a data-driven top position (close to the plotted range) when possible
-                y_top_data = float(np.nanmax(rho_upper)) if np.isfinite(rho_upper).any() else float(np.nanmax(y))
-                if np.isfinite(y_top_data) and np.isfinite(y_min) and (y_top_data > y_min):
-                    y_annot = min(y_max - y_pad, y_top_data - 0.03 * (y_top_data - y_min))
-                else:
-                    y_annot = y_max - y_pad
-
-                ax_r.text(
-                    x_min + x_pad,
-                    y_annot,
-                    "No sign-flip in sampled r-range",
-                    fontsize=9,
-                    va="top",
-                    ha="left",
-                    clip_on=False,
-                )
-            except Exception:
-                # Fallback (should be rare): keep it visible in axes coords
-                ax_r.text(
-                    0.05,
-                    0.95,
-                    "No sign-flip in sampled r-range",
-                    transform=ax_r.transAxes,
-                    fontsize=9,
-                    va="top",
-                    ha="left",
-                    clip_on=False,
-                )
+            # Place inside axes, top-left, in axes coordinates so it never overlaps the curve
+            ax_r.text(
+                0.02,
+                0.95,
+                "No sign-flip in sampled r-range",
+                transform=ax_r.transAxes,
+                ha="left",
+                va="top",
+                fontsize=10,
+            )
 
         any_panel = True
     except FileNotFoundError:
@@ -476,24 +452,30 @@ def generate_main_figure():
         d = d.dropna(subset=[t_col, b_col, c_col])
 
         categories = ["non_int", "fail", "success"]
+        sizes = {
+            "non_int": 9,
+            "fail": 9,
+            "success": 22,
+        }
+        alphas = {
+            "non_int": 0.18,
+            "fail": 0.22,
+            "success": 0.85,
+        }
 
-        # Plot three separate layers for clear category separation
+        # Plot each category in a separate scatter call (no seaborn hue shortcut)
         for cat in categories:
-            sub = d[d[c_col] == cat]
-            if sub.empty:
+            subset = d[d[c_col] == cat]
+            if subset.empty:
                 continue
-            if cat == "success":
-                s, alpha = 19, 0.80
-            else:
-                s, alpha = 9, 0.22
             ax_scatter.scatter(
-                sub[t_col],
-                sub[b_col],
-                s=s,
-                alpha=alpha,
-                label=cat,
+                subset[t_col],
+                subset[b_col],
+                s=sizes[cat],
+                alpha=alphas[cat],
                 color=COLOURS.get(cat, "#000000"),
-                edgecolors="none",
+                label=cat,
+                linewidths=0,
             )
 
         ax_scatter.set_xlabel(r"$T$ (lifetime)")
@@ -501,7 +483,7 @@ def generate_main_figure():
         ax_scatter.set_title(r"(D) Tail dominance in $(T,B)$")
         # Subtle grid; allow both directions for readability here
         ax_scatter.grid(True, axis="both", alpha=0.18)
-        ax_scatter.legend(frameon=False, fontsize=9, loc="upper left")
+        ax_scatter.legend(title=None, loc="upper left", frameon=False)
 
         # Annotate the sparse successful tail (if present)
         succ = d[d[c_col] == "success"]
@@ -516,12 +498,14 @@ def generate_main_figure():
                     "Sparse high-T, high-B 'success' tail",
                     xy=(tail_t, tail_b),
                     xycoords="data",
-                    xytext=(0.64, 0.92),
+                    # Keep label away from densest part of the cloud (use axes coords)
+                    xytext=(0.42, 0.92),
                     textcoords="axes fraction",
-                    ha="left",
+                    ha="center",
                     va="top",
                     fontsize=9,
-                    arrowprops=dict(arrowstyle="->", lw=1.0, color="black", shrinkA=2, shrinkB=2),
+                    color="#222222",
+                    arrowprops=dict(arrowstyle="->", color="#222222", lw=1.0),
                     clip_on=False,
                 )
         any_panel = True
